@@ -37,19 +37,12 @@ module.exports = {
       }
     },
     {
-      method: "hf.download",
-      params: {
-        path: "app/src",
-        _: ["IndexTeam/IndexTTS-2.5"],
-        "local-dir": "checkpoints"
-      }
-    },
-    {
       method: "shell.run",
       params: {
         venv: "../env",
         path: "app/src",
         message: [
+          "python -c \"from indextts.utils.model_download import snapshot_download; snapshot_download('IndexTeam/IndexTTS-2.5', local_dir='checkpoints')\"",
           "python -c \"from indextts.utils.model_download import ensure_models_available; ensure_models_available('checkpoints')\"",
           "python -c \"from indextts.utils.examples_downloader import ensure_examples_available; ensure_examples_available()\""
         ]
