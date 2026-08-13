@@ -26,17 +26,6 @@ module.exports = {
       }
     },
     {
-      method: "script.start",
-      params: {
-        uri: "torch.js",
-        params: {
-          venv: "env",
-          path: "app",
-          xformers: false
-        }
-      }
-    },
-    {
       method: "shell.run",
       params: {
         venv: "env",
@@ -64,6 +53,17 @@ module.exports = {
           "python -c \"from indextts.utils.model_download import ensure_models_available; ensure_models_available('checkpoints')\"",
           "python -c \"from indextts.utils.examples_downloader import ensure_examples_available; ensure_examples_available()\""
         ]
+      }
+    },
+    {
+      method: "script.start",
+      params: {
+        uri: "torch.js",
+        params: {
+          venv: "env",
+          path: "app",
+          xformers: false
+        }
       }
     },
     {
