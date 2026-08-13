@@ -1,7 +1,7 @@
 {
   "title": "IndexTTS 2.5",
   "description": "Zero-shot multilingual voice cloning with cross-lingual synthesis, disentangled emotion control, pronunciation guidance, and speaking-speed control.",
-  "icon": "icon.svg",
+  "icon": "icon.jpeg",
   "links": [
     {
       "title": "Upstream source",
