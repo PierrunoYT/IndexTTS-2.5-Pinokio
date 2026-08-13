@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="IndexTTS 2.5">
+  <defs>
+    <linearGradient id="bg" x1="64" y1="448" x2="448" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1667d9"/>
+      <stop offset="0.52" stop-color="#7047eb"/>
+      <stop offset="1" stop-color="#13b8ad"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bg)"/>
+  <g fill="#fff">
+    <rect x="100" y="218" width="32" height="76" rx="16"/>
+    <rect x="156" y="174" width="32" height="164" rx="16"/>
+    <rect x="212" y="112" width="32" height="288" rx="16"/>
+    <rect x="268" y="152" width="32" height="208" rx="16"/>
+    <rect x="324" y="194" width="32" height="124" rx="16"/>
+    <rect x="380" y="226" width="32" height="60" rx="16"/>
+  </g>
+  <rect x="318" y="360" width="126" height="64" rx="32" fill="#101834" fill-opacity="0.82"/>
+  <text x="381" y="405" fill="#fff" font-family="Arial, sans-serif" font-size="38" font-weight="700" text-anchor="middle">2.5</text>
+</svg>

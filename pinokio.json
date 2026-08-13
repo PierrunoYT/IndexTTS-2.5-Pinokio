@@ -1,0 +1,23 @@
+{
+  "title": "IndexTTS 2.5",
+  "description": "Zero-shot multilingual voice cloning with cross-lingual synthesis, disentangled emotion control, pronunciation guidance, and speaking-speed control.",
+  "icon": "icon.svg",
+  "links": [
+    {
+      "title": "Upstream source",
+      "value": "https://github.com/index-tts/index-tts"
+    },
+    {
+      "title": "Model weights",
+      "value": "https://huggingface.co/IndexTeam/IndexTTS-2.5"
+    },
+    {
+      "title": "Official demo",
+      "value": "https://huggingface.co/spaces/IndexTeam/IndexTTS-2.5-Demo"
+    },
+    {
+      "title": "Technical report",
+      "value": "https://arxiv.org/abs/2601.03888"
+    }
+  ]
+}
