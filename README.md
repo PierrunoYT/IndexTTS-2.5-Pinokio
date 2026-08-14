@@ -19,19 +19,53 @@ Chinese, English, Japanese, Spanish, or Arabic.
 
 - Python 3.10 or 3.11, provided by the Pinokio AI bundle
 - NVIDIA GPU recommended
-- About 6 GB of VRAM for inference
+- About 6 GB of VRAM on GPUs with BF16; 8 GB recommended for legacy GPUs
 - Enough disk space for the main and auxiliary checkpoints
 
 CPU inference is supported by the upstream code but is substantially slower.
-The launcher requests half precision; IndexTTS 2.5 uses BF16 when the GPU
-supports it and otherwise falls back to full precision.
+The launcher requests reduced precision. IndexTTS 2.5 uses BF16 on supported
+GPUs and GPT-only FP16 compatibility mode on older CUDA GPUs.
+
+### GTX 1080 and other Pascal GPUs
+
+The GTX 1080 has 8 GB of VRAM, CUDA compute capability 6.1, and no BF16
+support. Two upstream defaults otherwise prevent it from being practical:
+
+- PyTorch's CUDA 12.8 binaries no longer contain Pascal kernels.
+- IndexTTS 2.5 normally falls back from unavailable BF16 to FP32, which leaves
+  very little usable VRAM on an 8 GB card.
+
+This launcher selects the upstream-compatible PyTorch 2.8 CUDA 12.6 build for
+legacy GPUs (and CUDA 12.8 for newer GPUs), does not install or enable
+unsupported FlashAttention, and applies a small compatibility patch that casts
+only the GPT to FP16. The codec, diffusion model, feature extractor, and
+vocoder remain FP32 for numerical stability.
+QwenEmotion is automatically skipped below 10 GB of VRAM, so emotion by text
+description is unavailable on a GTX 1080; speaker emotion, an emotion audio
+reference, and the eight-value emotion vector still work.
+
+For a GTX 1080:
+
+1. Install a current NVIDIA driver (560 or newer is recommended). A separate
+   CUDA Toolkit is not needed for the prebuilt PyTorch wheel.
+2. Click **Install** or **Reinstall**, then **Start**. The startup log should say
+   `using GPT-only FP16 compatibility mode`.
+3. Close other GPU applications. If a long request runs out of memory, retry
+   with shorter text so the low-VRAM segmenter has less work per request.
+
+Do not manually enable FlashAttention, `--accel`, `--torch_compile`,
+`--cuda_kernel`, DeepSpeed, or QwenEmotion on Pascal. The FP16 compatibility
+path is launcher-provided because upstream officially supports only BF16 for
+2.5; it is expected to save enough memory for 8 GB, but will be slower than an
+RTX GPU and cannot provide BF16's numerical range.
 
 ## Install and run
 
 1. Open this launcher in Pinokio.
-2. Click **Install**. The launcher clones the official source, installs the
-   environment, downloads `IndexTeam/IndexTTS-2.5`, downloads the auxiliary
-   models, and fetches the official examples.
+2. Click **Install**. The launcher clones the official source, applies its
+   legacy-GPU compatibility patch, installs the environment, downloads
+   `IndexTeam/IndexTTS-2.5`, downloads the auxiliary models, and fetches the
+   official examples.
 3. Click **Start**.
 4. Pinokio opens the dynamically allocated local Web UI URL.
 5. Upload a clear reference recording, choose the target language, enter text,

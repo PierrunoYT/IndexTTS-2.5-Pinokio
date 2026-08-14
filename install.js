@@ -28,12 +28,8 @@ module.exports = {
     {
       method: "shell.run",
       params: {
-        venv: "env",
-        path: "app",
-        message: [
-          "uv pip install -r requirements.txt",
-          "uv pip install -e ./src --no-deps"
-        ]
+        path: "app/src",
+        message: "node ../../compat.js apply"
       }
     },
     {
@@ -42,9 +38,19 @@ module.exports = {
         uri: "torch.js",
         params: {
           venv: "env",
-          path: "app",
-          xformers: false
+          path: "app"
         }
+      }
+    },
+    {
+      method: "shell.run",
+      params: {
+        venv: "env",
+        path: "app",
+        message: [
+          "uv pip install -r requirements.txt",
+          "uv pip install -e ./src --no-deps"
+        ]
       }
     },
     {

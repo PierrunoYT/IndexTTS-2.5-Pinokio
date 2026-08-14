@@ -3,6 +3,13 @@ module.exports = {
     {
       method: "shell.run",
       params: {
+        path: "app/src",
+        message: "node ../../compat.js reverse"
+      }
+    },
+    {
+      method: "shell.run",
+      params: {
         message: "git pull"
       }
     },
