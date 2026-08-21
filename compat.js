@@ -11,7 +11,7 @@ const source = path.join(__dirname, "app", "src")
 const patch = path.join(__dirname, "legacy-gpu.patch")
 
 function gitApply(reverse, checkOnly, quiet = false) {
-  const args = ["apply", "--unidiff-zero"]
+  const args = ["apply"]
   if (reverse) args.push("--reverse")
   if (checkOnly) args.push("--check")
   args.push(patch)

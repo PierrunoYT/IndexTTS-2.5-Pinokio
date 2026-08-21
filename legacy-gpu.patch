@@ -1,47 +1,104 @@
 diff --git a/indextts/infer_v2_5.py b/indextts/infer_v2_5.py
-index 33b4cf9..0ed98fb 100644
+index 2c75699..ee42f30 100644
 --- a/indextts/infer_v2_5.py
 +++ b/indextts/infer_v2_5.py
-@@ -77 +77 @@ class IndexTTS2:
+@@ -75,7 +75,7 @@ def apply_pronunciation_annotations(text: str) -> str:
+ 
+ class IndexTTS2:
+     def __init__(
 -            self, cfg_path="checkpoints/config.yaml", model_dir="checkpoints", use_bf16=False, device=None,
 +            self, cfg_path="checkpoints/config.yaml", model_dir="checkpoints", use_bf16=False, use_fp16=False, device=None,
-@@ -84,0 +85 @@ class IndexTTS2:
-+            use_fp16 (bool): whether to use GPT-only fp16 compatibility mode.
-@@ -93,0 +95,3 @@ class IndexTTS2:
+             use_cuda_kernel=None,use_deepspeed=False, use_accel=False, use_torch_compile=False, use_qwen_emo=False
+     ):
+         """
+@@ -83,6 +83,7 @@ class IndexTTS2:
+             cfg_path (str): path to the config file.
+             model_dir (str): path to the model directory.
+             use_bf16 (bool): whether to use bf16.
++            use_fp16 (bool): whether to use GPT-only fp16 compatibility mode on legacy CUDA GPUs.
+             device (str): device to use (e.g., 'cuda:0', 'cpu'). If None, it will be set automatically based on the availability of CUDA or MPS.
+             use_cuda_kernel (None | bool): whether to use BigVGan custom fused activation CUDA kernel, only for CUDA device.
+             use_deepspeed (bool): whether to use DeepSpeed or not.
+@@ -92,31 +93,39 @@ class IndexTTS2:
+                 Required for ``infer(..., use_emo_text=True)``. Attempting to use emotion-text
+                 guidance when this is disabled will raise a RuntimeError.
+         """
 +        if use_bf16 and use_fp16:
 +            raise ValueError("use_bf16 and use_fp16 cannot both be enabled")
 +
-@@ -96,0 +101 @@ class IndexTTS2:
-+            self.use_fp16 = False if device == "cpu" else use_fp16
-@@ -100,0 +106 @@ class IndexTTS2:
-+            self.use_fp16 = use_fp16
-@@ -104,0 +111 @@ class IndexTTS2:
-+            self.use_fp16 = use_fp16
-@@ -108,0 +116 @@ class IndexTTS2:
+         if device is not None:
+             self.device = device
+             self.use_bf16 = False if device == "cpu" else use_bf16
++            self.use_fp16 = use_fp16 and device.startswith("cuda") and torch.version.hip is None
+             self.use_cuda_kernel = use_cuda_kernel is not None and use_cuda_kernel and device.startswith("cuda")
+         elif torch.cuda.is_available():
+             self.device = "cuda:0"
+             self.use_bf16 = use_bf16
++            self.use_fp16 = use_fp16 and torch.version.hip is None
+             self.use_cuda_kernel = use_cuda_kernel is None or use_cuda_kernel
+         elif hasattr(torch, "xpu") and torch.xpu.is_available():
+             self.device = "xpu"
+             self.use_bf16 = use_bf16
 +            self.use_fp16 = False
-@@ -112,0 +121 @@ class IndexTTS2:
+             self.use_cuda_kernel = False
+         elif hasattr(torch, "mps") and torch.backends.mps.is_available():
+             self.device = "mps"
+             self.use_bf16 = False  # Use bfloat16 on MPS is overhead than float32
 +            self.use_fp16 = False
-@@ -118 +127 @@ class IndexTTS2:
+             self.use_cuda_kernel = False
+         else:
+             self.device = "cpu"
+             self.use_bf16 = False
++            self.use_fp16 = False
+             self.use_cuda_kernel = False
+             print(">> Be patient, it may take a while to run in CPU mode.")
+ 
+         self.cfg = OmegaConf.load(cfg_path)
+         self.model_dir = model_dir
 -        self.dtype = torch.bfloat16 if self.use_bf16 else None
 +        self.dtype = torch.bfloat16 if self.use_bf16 else torch.float16 if self.use_fp16 else None
-@@ -143,0 +153,2 @@ class IndexTTS2:
+         self.stop_mel_token = self.cfg.gpt.stop_mel_token
+         self.use_accel = use_accel
+         self.use_torch_compile = use_torch_compile
+@@ -142,6 +151,8 @@ class IndexTTS2:
+         self.gpt = self.gpt.to(self.device)
+         if self.use_bf16:
+             self.gpt.eval().bfloat16()
 +        elif self.use_fp16:
 +            self.gpt.eval().half()
-@@ -155 +166,5 @@ class IndexTTS2:
+         else:
+             self.gpt.eval()
+         print(">> GPT weights restored from:", self.gpt_path)
+@@ -153,7 +164,11 @@ class IndexTTS2:
+                 use_deepspeed = False
+                 print(f">> Failed to load DeepSpeed. Falling back to normal inference. Error: {e}")
+ 
 -        self.gpt.post_init_gpt2_config(use_deepspeed=use_deepspeed, kv_cache=True, half=self.use_bf16)
 +        self.gpt.post_init_gpt2_config(
 +            use_deepspeed=use_deepspeed,
 +            kv_cache=True,
 +            half=self.use_bf16 or self.use_fp16,
 +        )
+ 
+         if self.use_cuda_kernel:
+             # preload the CUDA kernel for BigVGAN
 diff --git a/webui.py b/webui.py
-index f595f8e..61329b4 100644
+index bfc7ab2..07db559 100644
 --- a/webui.py
 +++ b/webui.py
-@@ -29 +29 @@ parser.add_argument("--version", type=str, default="2.5", choices=["2", "2.5"],
+@@ -26,7 +26,7 @@ parser.add_argument("--port", type=int, default=7860, help="Port to run the web
+ parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to run the web UI on")
+ parser.add_argument("--model_dir", type=str, default="./checkpoints", help="Model checkpoints directory")
+ parser.add_argument("--version", type=str, default="2.5", choices=["2", "2.5"], help="Model version to use")
 -parser.add_argument("--fp16", action="store_true", default=False, help="Use FP16 for inference if available")
 +parser.add_argument("--fp16", action="store_true", default=False, help="Use reduced precision for inference if available")
-@@ -155,2 +155,13 @@ def build_tts(use_accel=False, use_torch_compile=False):
+ parser.add_argument("--deepspeed", action="store_true", default=False, help="Use DeepSpeed to accelerate if available")
+ parser.add_argument("--cuda_kernel", action="store_true", default=False, help="Use CUDA kernel for inference if available")
+ parser.add_argument("--accel", action="store_true", default=False, help="Use GPT2 acceleration engine if available")
+@@ -152,9 +152,21 @@ def build_tts(use_accel=False, use_torch_compile=False):
+     )
+     if IS_V25:
+         use_bf16 = HALF_PRECISION and torch.cuda.is_bf16_supported()
 -        if HALF_PRECISION and not use_bf16:
 -            print(">> BF16 is not supported on this device, falling back to full precision.")
 +        use_fp16 = (
@@ -57,5 +114,8 @@ index f595f8e..61329b4 100644
 +            )
 +        elif HALF_PRECISION and not use_bf16:
 +            print(">> Reduced precision is not supported on this device, falling back to full precision.")
-@@ -157,0 +169 @@ def build_tts(use_accel=False, use_torch_compile=False):
+         kwargs["use_bf16"] = use_bf16
 +        kwargs["use_fp16"] = use_fp16
+     else:
+         kwargs["use_fp16"] = HALF_PRECISION
+     return IndexTTS2(**kwargs)
