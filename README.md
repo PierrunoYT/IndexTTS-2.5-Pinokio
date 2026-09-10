@@ -62,7 +62,8 @@ RTX GPU and cannot provide BF16's numerical range.
 ## Install and run
 
 1. Open this launcher in Pinokio.
-2. Click **Install**. The launcher clones the official source, applies its
+2. Click **Install**. The launcher clones the official source, checks out the
+   upstream revision this launcher is tested against, applies its
    legacy-GPU compatibility patch, installs the environment, downloads
    `IndexTeam/IndexTTS-2.5`, downloads the auxiliary models, and fetches the
    official examples.
@@ -118,16 +119,19 @@ He had a <minute|M IH1 . N AH0 T> to review it.
 
 ## Update and reset
 
-- **Update** pulls this launcher and the official source, then reapplies the
-  installation.
+- **Update** pulls this launcher, then reapplies the installation. The upstream
+  source moves only when the launcher's pinned revision does, so the
+  compatibility patch is always applied to a revision it was verified against.
 - **Save Disk Space** deduplicates packages in `app/env`.
 - **Reset** removes `app/env` and `app/src`, including downloaded models,
   presets, and generated outputs. Copy anything important out first.
 
 ## Programmatic API
 
-The running application exposes Gradio's generated API. Replace `$BASE` below
-with the URL shown by Pinokio. Inspect the exact live schema at:
+The running application exposes Gradio's generated API. Pinokio allocates the
+port dynamically, so the `7860` in the snippets below is only a placeholder --
+substitute the host and port Pinokio actually shows. Inspect the exact live
+schema at:
 
 ```bash
 curl "$BASE/gradio_api/info"

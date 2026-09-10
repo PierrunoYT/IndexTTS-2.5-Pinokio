@@ -4,9 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-venv/
-ENV/
 build/
 develop-eggs/
 dist/
@@ -66,6 +63,12 @@ flagged/
 # Logs
 *.log
 logs/
+
+# Agent tooling
+.claude/
+.codex/
+.gemini/
+.open-edit/
 
 # Temporary files
 tmp/
