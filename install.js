@@ -1,3 +1,9 @@
+// Upstream revision this launcher is tested against. legacy-gpu.patch carries
+// fixed context lines, so tracking main unpinned means the next upstream commit
+// touching IndexTTS2.__init__ or build_tts breaks every fresh install. Bump this
+// and re-verify the patch together, in one commit.
+const UPSTREAM_REV = "ee40fa7d6c6b8a2c7f06105f9f1e65775b74868c"
+
 module.exports = {
   requires: {
     bundle: "ai"
@@ -23,6 +29,18 @@ module.exports = {
       params: {
         path: "app",
         message: "git clone https://github.com/index-tts/index-tts.git src"
+      }
+    },
+    {
+      // --force discards the compatibility patch so the checkout can move, and
+      // leaves untracked files -- checkpoints/ above all -- alone.
+      method: "shell.run",
+      params: {
+        path: "app/src",
+        message: [
+          "git fetch origin",
+          `git checkout --force ${UPSTREAM_REV}`
+        ]
       }
     },
     {

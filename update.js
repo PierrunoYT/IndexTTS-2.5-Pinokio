@@ -7,20 +7,10 @@ module.exports = {
       }
     },
     {
-      method: "shell.run",
-      params: {
-        path: "app/src",
-        message: "node ../../compat.js reverse"
-      }
-    },
-    {
-      method: "shell.run",
-      params: {
-        path: "app/src",
-        message: "git pull"
-      }
-    },
-    {
+      // install.js owns the upstream side: it clones when needed, fetches, and
+      // hard-checks out the pinned revision. Doing it here as well meant Update
+      // ran git against app/src unguarded, so a half-installed app failed here
+      // instead of falling through to a reinstall.
       method: "script.start",
       params: {
         uri: "install.js"
