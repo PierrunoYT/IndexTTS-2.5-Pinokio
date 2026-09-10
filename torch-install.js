@@ -22,13 +22,14 @@ const packages = [
   "torchvision==0.23.0",
   "torchaudio==2.8.0"
 ]
+// No --no-deps here: the verify step below imports torch before
+// app/requirements.txt is installed, and torch needs filelock,
+// typing-extensions, sympy, networkx, jinja2, and fsspec to import at all.
 const args = [
   "pip", "install", ...packages,
   "--index-url", `https://download.pytorch.org/whl/${cuda}`,
   "--force-reinstall"
 ]
-
-if (process.platform === "win32") args.push("--no-deps")
 
 console.log(`Installing PyTorch ${cuda} for CUDA compute capability ${capability}`)
 const install = spawnSync("uv", args, { stdio: "inherit" })
