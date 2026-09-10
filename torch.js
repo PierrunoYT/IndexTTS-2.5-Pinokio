@@ -8,8 +8,26 @@ const TORCH = "torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0"
 const venv = "{{args && args.venv ? args.venv : null}}"
 const path = "{{args && args.path ? args.path : '.'}}"
 
+// Every branch below must stay mutually exclusive and, together, cover every
+// platform -- a configuration that matches nothing installs no torch at all and
+// only fails much later, at "import torch".
+const MAC_INTEL_REASON =
+  "Upstream requires torch==2.8.*, and PyTorch has shipped no macOS Intel " +
+  "(x86_64) builds since 2.2. Apple Silicon Macs (M1 or newer) are supported; " +
+  "Intel Macs are not."
+
 module.exports = {
   run: [
+    // intel mac -- unsupported, fail with a reason
+    {
+      "when": "{{platform === 'darwin' && arch !== 'arm64'}}",
+      "method": "shell.run",
+      "params": {
+        "venv": venv,
+        "path": path,
+        "message": `node ../unsupported-platform.js "${MAC_INTEL_REASON}"`
+      }
+    },
     // windows nvidia
     {
       "when": "{{gpu === 'nvidia' && platform === 'win32'}}",

@@ -18,6 +18,8 @@ Chinese, English, Japanese, Spanish, or Arabic.
 ## Requirements
 
 - Python 3.10 or 3.11, provided by the Pinokio AI bundle
+- Windows, Linux, or an Apple Silicon Mac. Intel Macs are not supported:
+  upstream requires PyTorch 2.8, which has no macOS x86_64 builds.
 - NVIDIA GPU recommended
 - About 6 GB of VRAM on GPUs with BF16; 8 GB recommended for legacy GPUs
 - Enough disk space for the main and auxiliary checkpoints
