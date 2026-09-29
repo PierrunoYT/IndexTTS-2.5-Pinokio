@@ -32,13 +32,16 @@ module.exports = {
       }
     },
     {
-      // --force discards the compatibility patch so the checkout can move, and
-      // leaves untracked files -- checkpoints/ above all -- alone.
+      // Fetch only when the pinned commit is missing, so Reinstall and Update
+      // work offline, and fetch it by hash so a rewritten upstream main cannot
+      // leave it unreachable. --force discards the compatibility patch so the
+      // checkout can move, and leaves untracked files -- checkpoints/ above
+      // all -- alone.
       method: "shell.run",
       params: {
         path: "app/src",
         message: [
-          "git fetch origin",
+          `git cat-file -e ${UPSTREAM_REV} || git fetch origin ${UPSTREAM_REV}`,
           `git checkout --force ${UPSTREAM_REV}`
         ]
       }
