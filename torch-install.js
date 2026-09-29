@@ -1,5 +1,13 @@
 const { spawnSync } = require("child_process")
 
+// Pinokio ignores exit codes and only halts on output matching /error:/i, so
+// every failure must print an "Error:" line or the install carries on to the
+// requirements and model downloads without a working torch.
+function fail(message, status = 1) {
+  console.error(`Error: ${message}`)
+  process.exit(status || 1)
+}
+
 const capabilityResult = spawnSync(
   "nvidia-smi",
   ["--query-gpu=compute_cap", "--format=csv,noheader"],
@@ -9,8 +17,7 @@ const capability = capabilityResult.stdout?.trim().split(/\r?\n/, 1)[0]
 const match = /^(\d+)\.(\d+)$/.exec(capability || "")
 
 if (capabilityResult.status !== 0 || !match) {
-  console.error("Unable to detect the NVIDIA GPU compute capability. Update the NVIDIA driver and retry.")
-  process.exit(1)
+  fail("Unable to detect the NVIDIA GPU compute capability. Update the NVIDIA driver and retry.")
 }
 
 const major = Number(match[1])
@@ -33,7 +40,7 @@ const args = [
 
 console.log(`Installing PyTorch ${cuda} for CUDA compute capability ${capability}`)
 const install = spawnSync("uv", args, { stdio: "inherit" })
-if (install.status !== 0) process.exit(install.status || 1)
+if (install.status !== 0) fail("Installing PyTorch failed.", install.status)
 
 const verify = spawnSync(
   "python",
@@ -43,4 +50,4 @@ const verify = spawnSync(
   ],
   { stdio: "inherit" }
 )
-if (verify.status !== 0) process.exit(verify.status || 1)
+if (verify.status !== 0) fail("The installed PyTorch build cannot use this GPU.", verify.status)

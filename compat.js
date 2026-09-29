@@ -48,11 +48,13 @@ if (gitApply(false, true, true)) {
   // multi-GB checkpoints) can recover.
   console.log("The patched IndexTTS files are in an unexpected state; restoring them and retrying.")
   if (!restore()) {
-    console.error("Unable to restore the IndexTTS source files to their checked-out state.")
+    console.error("Error: Unable to restore the IndexTTS source files to their checked-out state.")
     process.exit(1)
   }
   if (!gitApply(false, true, true)) {
-    console.error("The IndexTTS legacy-GPU patch does not match the installed source.")
+    // The check above ran quietly, so git printed nothing; Pinokio ignores exit
+    // codes and only halts on output matching /error:/i.
+    console.error("Error: The IndexTTS legacy-GPU patch does not match the installed source.")
     process.exit(1)
   }
   if (!gitApply(false, false)) process.exit(1)
