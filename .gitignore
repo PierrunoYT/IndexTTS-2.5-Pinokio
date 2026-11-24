@@ -69,9 +69,14 @@ logs/
 .codex/
 .gemini/
 .open-edit/
+.open-edit-prefs.json
+.agents/
+runs/
+node_modules/
+package.json
+package-lock.json
 
 # Temporary files
 tmp/
 temp/
 *.tmp
-
